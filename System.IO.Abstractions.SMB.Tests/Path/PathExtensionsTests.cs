@@ -69,6 +69,38 @@ namespace System.IO.Abstractions.SMB.Tests.Path
         }
 
         [Fact]
+        public void CombineSharePath_ReturnsSmbPath_ForSmbPath()
+        {
+            foreach (var property in _smbUriTestData.GetType().GetProperties())
+            {
+                var path = (string)property.GetValue(_smbUriTestData);
+                var testCombineSharePath = "Test/Combined/Share/Path";
+
+                var builtSharePath = path.CombineToSharePath(testCombineSharePath);
+
+                string expectedPath = $"{path}/{testCombineSharePath}";
+
+                Assert.Equal(expectedPath, builtSharePath);
+            }
+        }
+
+        [Fact]
+        public void CombineSharePath_ReturnsSmbPath_ForUncPath()
+        {
+            foreach (var property in _uncPathTestData.GetType().GetProperties())
+            {
+                var path = (string)property.GetValue(_uncPathTestData);
+                var testCombineSharePath = @"Test\Combined\Share\Path";
+
+                var builtSharePath = path.CombineToSharePath(testCombineSharePath);
+
+                string expectedPath = $@"{path}\{testCombineSharePath}";
+
+                Assert.Equal(expectedPath, builtSharePath);
+            }
+        }
+
+        [Fact]
         public void HostName_ReturnsHost_ForSmbUrl()
         {
             foreach (var property in _smbUriTestData.GetType().GetProperties())

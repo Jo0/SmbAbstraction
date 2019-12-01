@@ -38,6 +38,20 @@ namespace System.IO.Abstractions.SMB
             }
         }
 
+        public static string CombineToSharePath(this string path, string pathToCombine)
+        {
+            var uri = new Uri(path);
+
+            if (!uri.IsUnc)
+            {
+                return $"{uri.AbsoluteUri}/{pathToCombine.ReplaceSeperators("/")}";
+            }
+            else
+            {
+                return Path.Combine(uri.LocalPath, pathToCombine.ReplaceSeperators("\\"));
+            }
+        }
+
         public static string Hostname(this string path)
         {
             var uri = new Uri(path);
@@ -95,7 +109,17 @@ namespace System.IO.Abstractions.SMB
 
         public static string RelativeSharePath(this string path)
         {
-            var relativePath = path.RemoveShareNameFromPath().RemoveLeadingSeperators().Replace("/", @"\");
+            var uri = new Uri(path);
+            string relativePath = "";
+
+            if(uri.Scheme.Equals("smb"))
+            {
+                relativePath = uri.OriginalString.RemoveShareNameFromPath().RemoveLeadingSeperators().Replace("/", @"\");
+            }
+            else if (uri.IsUnc)
+            {
+                relativePath = uri.LocalPath.RemoveShareNameFromPath().RemoveLeadingSeperators().Replace("/", @"\");
+            }
 
             return relativePath;
         }
@@ -127,6 +151,16 @@ namespace System.IO.Abstractions.SMB
                 {
                     input = input.Remove(0, 1);
                 }
+            }
+
+            return input;
+        }
+
+        private static string ReplaceSeperators(this string input, string value)
+        {
+            foreach (var pathSeperator in pathSeperators)
+            {
+                input = input.Replace(pathSeperator, value);
             }
 
             return input;
